@@ -1,20 +1,29 @@
 # Harvest Tracker
 
-A personal Flutter web app for logging time entries to [Harvest](https://www.getharvest.com/) directly from the browser.
+A personal Flutter web app for logging time entries to [Harvest](https://www.getharvest.com/) directly from the browser, with first-class Azure DevOps integration.
 
 ## Features
 
+### Log Time
 - **Project & task selection** — loads your assigned projects and tasks from the Harvest API, with cascading dropdowns
-- **Default project & task** — configure a default project and task in Settings so the form is pre-filled on load
-- **Hours & minutes input** — pick hours (0–24) and minutes (5-minute intervals) instead of typing decimals
-- **Azure DevOps linking** — optionally link a work item to a time entry:
-  - Select an ADO instance (configurable in Settings) and enter a work item number
-  - Permalink is auto-constructed as `{projectUrl}/_workitems/edit/{id}`
-  - Notes are automatically prefixed, e.g. `Transport Azure DevOps User Story #13483 - your notes here`
-  - Work item links in the Recent tab are clickable and open in a new tab
-- **Daily entries view** — browse entries by day with prev/next navigation and a date picker
-- **8-hour progress bar** — visual indicator of daily progress toward the 8h goal, with overflow tracking
-- **Configurable settings** — all credentials and ADO instances are stored in browser `localStorage` and can be updated at runtime without recompiling
+- **Default project & task** — configure defaults in Settings so the form is pre-filled on load
+- **Hours & minutes input** — pick hours (0–24) and minutes in 5-minute intervals
+- **Date picker** — log time against any past date, defaulting to today
+
+### Azure DevOps Integration
+- **Configurable ADO instances** — add any number of Azure DevOps project URLs in Settings
+- **PAT authentication** — store a Personal Access Token per instance (stored in `localStorage`, never committed)
+- **Live work item preview** — type a work item number and see the title + state fetched from ADO in real time (debounced 600 ms), with a colour-coded state dot
+- **Auto-prefixed notes** — notes are automatically prefixed, e.g. `Transport Azure DevOps User Story #13483 - your notes`
+- **Clickable work item cards** — tapping the card opens the work item in ADO in a new tab
+
+### Recent Entries
+- **Daily view** — browse entries by day with prev/next navigation and a date picker
+- **Work item details on cards** — title, state, and a colour-coded dot are fetched and displayed on each entry card; the card itself is the clickable link to ADO
+- **8-hour progress bar** — visual indicator of daily progress toward the 8 h goal, with overflow tracking
+
+### Settings
+- All credentials and ADO instances persist in browser `localStorage` and take effect immediately without recompiling
 
 ## Project Structure
 
@@ -22,14 +31,16 @@ A personal Flutter web app for logging time entries to [Harvest](https://www.get
 lib/
 ├── main.dart
 ├── config/
-│   └── app_config.dart              # credentials & default ADO instances (gitignored)
+│   └── app_config.dart                 # credentials & default ADO instances (gitignored)
 ├── models/
+│   ├── ado_work_item.dart
 │   ├── project_assignment.dart
 │   └── time_entry.dart
 ├── services/
-│   └── harvest_service.dart         # Harvest API v2 calls
+│   ├── ado_service.dart                # ADO REST API — work item fetch & cache
+│   └── harvest_service.dart            # Harvest API v2
 ├── providers/
-│   ├── ado_instance_provider.dart   # ADO instances (localStorage)
+│   ├── ado_instance_provider.dart      # ADO instances (localStorage)
 │   ├── assignment_provider.dart
 │   └── time_entry_provider.dart
 ├── screens/
@@ -40,7 +51,8 @@ lib/
 └── widgets/
     ├── error_banner.dart
     ├── project_task_selector.dart
-    └── time_entry_card.dart
+    ├── time_entry_card.dart
+    └── work_item_preview.dart          # shared ADO work item preview card
 ```
 
 ## Setup
@@ -49,10 +61,11 @@ lib/
 
 - [Flutter SDK](https://docs.flutter.dev/get-started/install) (web support enabled)
 - A [Harvest personal access token](https://id.getharvest.com/developers)
+- (Optional) Azure DevOps Personal Access Token with **Read** access to Work Items
 
 ### 2. Configure credentials
 
-Create `lib/config/app_config.dart` (this file is gitignored — never commit it):
+Create `lib/config/app_config.dart` (gitignored — never commit this file):
 
 ```dart
 import '../models/time_entry.dart';
@@ -93,14 +106,15 @@ flutter build web --release
 
 Serve the `build/web` directory from any static host.
 
-## Settings
+## Settings Reference
 
-All settings persist in browser `localStorage` and take effect immediately without recompiling:
+All settings persist in browser `localStorage`:
 
-| Setting | Description |
-|---|---|
-| API Token | Harvest personal access token |
-| Account ID | Harvest account ID |
-| Default Project | Pre-selected project on the Log Time screen |
-| Default Task | Pre-selected task for the default project |
-| ADO Instances | Add, edit, or remove Azure DevOps project links |
+| Setting         | Description                                                           |
+| --------------- | --------------------------------------------------------------------- |
+| API Token       | Harvest personal access token                                         |
+| Account ID      | Harvest account ID                                                    |
+| Default Project | Pre-selected project on the Log Time screen                           |
+| Default Task    | Pre-selected task for the default project                             |
+| ADO Instances   | Add, edit, or remove Azure DevOps project URLs                        |
+| PAT (per ADO)   | Personal Access Token for each ADO instance — enables work item fetch |
