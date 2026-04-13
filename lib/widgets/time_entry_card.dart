@@ -57,8 +57,10 @@ class TimeEntryCard extends StatelessWidget {
                   onTap: () {
                     final permalink = entry.externalReference!.permalink;
                     if (permalink != null) {
-                      launchUrl(Uri.parse(permalink),
-                          mode: LaunchMode.externalApplication);
+                      launchUrl(
+                        Uri.parse(permalink),
+                        webOnlyWindowName: '_blank',
+                      );
                     }
                   },
                   child: Row(
