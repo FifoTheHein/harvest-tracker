@@ -94,7 +94,6 @@ class TimeEntryCard extends StatelessWidget {
                   workItemId: workItemId,
                   instance: matchingInstance,
                   permalink: entry.externalReference!.permalink,
-                  loggedBy: entry.userName,
                   showNoPat: false,
                 )
               else

@@ -17,9 +17,6 @@ class WorkItemPreview extends StatelessWidget {
   /// When provided the card opens this URL on tap.
   final String? permalink;
 
-  /// Harvest user who logged this entry, shown at the bottom of the card.
-  final String? loggedBy;
-
   const WorkItemPreview({
     super.key,
     required this.isLoading,
@@ -29,7 +26,6 @@ class WorkItemPreview extends StatelessWidget {
     required this.instance,
     this.showNoPat = true,
     this.permalink,
-    this.loggedBy,
   });
 
   @override
@@ -112,17 +108,29 @@ class WorkItemPreview extends StatelessWidget {
                                     color: stateColor,
                                   ),
                         ),
-                        if (loggedBy != null)
-                          Text(
-                            'Logged by $loggedBy',
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodySmall
-                                ?.copyWith(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onSurfaceVariant,
+                        if (workItem!.createdByName != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 6),
+                            child: Row(
+                              children: [
+                                _AvatarWidget(
+                                  name: workItem!.createdByName!,
+                                  imageUrl: workItem!.createdByAvatarUrl,
                                 ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  workItem!.createdByName!,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurfaceVariant,
+                                      ),
+                                ),
+                              ],
+                            ),
                           ),
                       ],
                     ),
@@ -171,5 +179,38 @@ class WorkItemPreview extends StatelessWidget {
       return Colors.grey;
     }
     return Theme.of(context).colorScheme.secondary;
+  }
+}
+
+class _AvatarWidget extends StatelessWidget {
+  final String name;
+  final String? imageUrl;
+
+  const _AvatarWidget({required this.name, this.imageUrl});
+
+  String get _initials {
+    final parts = name.trim().split(RegExp(r'\s+'));
+    if (parts.length == 1) return parts[0][0].toUpperCase();
+    return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return CircleAvatar(
+      radius: 10,
+      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+      backgroundImage: imageUrl != null ? NetworkImage(imageUrl!) : null,
+      onBackgroundImageError: imageUrl != null ? (_, _) {} : null,
+      child: imageUrl == null
+          ? Text(
+              _initials,
+              style: TextStyle(
+                fontSize: 8,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.onPrimaryContainer,
+              ),
+            )
+          : null,
+    );
   }
 }
