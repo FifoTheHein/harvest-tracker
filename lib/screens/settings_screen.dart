@@ -348,9 +348,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final labelText = labelController.text.trim();
     final urlText = urlController.text.trim();
     final patText = patController.text.trim();
-    labelController.dispose();
-    urlController.dispose();
-    patController.dispose();
 
     if (confirmed == true && context.mounted) {
       final instance = AdoInstance(
