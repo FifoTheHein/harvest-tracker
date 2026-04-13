@@ -15,14 +15,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
   static const _destinations = [
     NavigationDestination(
-      icon: Icon(Icons.add_circle_outline),
-      selectedIcon: Icon(Icons.add_circle),
-      label: 'Log Time',
-    ),
-    NavigationDestination(
       icon: Icon(Icons.list_alt_outlined),
       selectedIcon: Icon(Icons.list_alt),
       label: 'Recent',
+    ),
+    NavigationDestination(
+      icon: Icon(Icons.add_circle_outline),
+      selectedIcon: Icon(Icons.add_circle),
+      label: 'Log Time',
     ),
     NavigationDestination(
       icon: Icon(Icons.settings_outlined),
@@ -32,8 +32,8 @@ class _HomeScreenState extends State<HomeScreen> {
   ];
 
   final _screens = const [
-    LogTimeScreen(),
     RecentEntriesScreen(),
+    LogTimeScreen(),
     SettingsScreen(),
   ];
 
@@ -41,7 +41,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Harvest Tracker'),
+        title: const Text('Harvest Tracker 2.0'),
         backgroundColor: const Color(0xFFFA5D24),
         foregroundColor: Colors.white,
         elevation: 2,
