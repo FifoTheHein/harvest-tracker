@@ -18,8 +18,9 @@ A personal Flutter web app for logging time entries to [Harvest](https://www.get
 - **Clickable work item cards** — tapping the card opens the work item in ADO in a new tab
 
 ### Recent Entries
+- **Default landing screen** — the app opens directly on today's entries
 - **Daily view** — browse entries by day with prev/next navigation and a date picker
-- **Work item details on cards** — title, state, and a colour-coded dot are fetched and displayed on each entry card; the card itself is the clickable link to ADO
+- **Work item cards** — each ADO-linked entry shows a clickable card with title, `#id · state` (colour-coded dot), and the work item creator's avatar and display name
 - **8-hour progress bar** — visual indicator of daily progress toward the 8 h goal, with overflow tracking
 
 ### Settings
