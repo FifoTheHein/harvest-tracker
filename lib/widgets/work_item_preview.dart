@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:web/web.dart' as web;
 import '../models/ado_work_item.dart';
 import '../models/time_entry.dart';
 
@@ -13,6 +14,9 @@ class WorkItemPreview extends StatelessWidget {
   /// Set to false in compact contexts like entry cards.
   final bool showNoPat;
 
+  /// When provided the card opens this URL on tap.
+  final String? permalink;
+
   const WorkItemPreview({
     super.key,
     required this.isLoading,
@@ -21,6 +25,7 @@ class WorkItemPreview extends StatelessWidget {
     required this.workItemId,
     required this.instance,
     this.showNoPat = true,
+    this.permalink,
   });
 
   @override
@@ -59,59 +64,79 @@ class WorkItemPreview extends StatelessWidget {
 
     if (workItem != null) {
       final stateColor = _stateColor(context, workItem!.state);
-      return Container(
-        margin: const EdgeInsets.symmetric(vertical: 4),
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surfaceContainerLow,
+      final url = permalink ?? instance.permalinkFor(workItemId);
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: ClipRRect(
           borderRadius: BorderRadius.circular(6),
-          border: Border.all(
-            color: Theme.of(context).colorScheme.outlineVariant,
-          ),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: 10,
-              height: 10,
-              margin: const EdgeInsets.only(top: 3, right: 8),
+          child: InkWell(
+            onTap: () => web.window.open(url, '_blank'),
+            child: Container(
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: stateColor,
-                shape: BoxShape.circle,
+                color: Theme.of(context).colorScheme.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.outlineVariant,
+                ),
               ),
-            ),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Text(
-                    workItem!.title,
-                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  Container(
+                    width: 10,
+                    height: 10,
+                    margin: const EdgeInsets.only(right: 8),
+                    decoration: BoxDecoration(
+                      color: stateColor,
+                      shape: BoxShape.circle,
+                    ),
                   ),
-                  Text(
-                    workItem!.state,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: stateColor,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          workItem!.title,
+                          style:
+                              const TextStyle(fontWeight: FontWeight.w600),
                         ),
+                        Text(
+                          workItem!.state,
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: stateColor,
+                                  ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(
+                    Icons.open_in_new,
+                    size: 14,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                 ],
               ),
             ),
-          ],
+          ),
         ),
       );
     }
 
-    // Fallback: show permalink text
+    // Fallback: show permalink as a plain link
+    final url = permalink ?? instance.permalinkFor(workItemId);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Text(
-        instance.permalinkFor(workItemId),
-        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-        overflow: TextOverflow.ellipsis,
+      child: InkWell(
+        onTap: () => web.window.open(url, '_blank'),
+        child: Text(
+          'ADO #$workItemId',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.primary,
+                decoration: TextDecoration.underline,
+              ),
+        ),
       ),
     );
   }

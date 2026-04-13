@@ -365,6 +365,10 @@ class _LogTimeScreenState extends State<LogTimeScreen> {
                   hasPat: _selectedAdoInstance!.pat != null,
                   workItemId: _workItemIdController.text.trim(),
                   instance: _selectedAdoInstance!,
+                  permalink: _workItemIdController.text.trim().isNotEmpty
+                      ? _selectedAdoInstance!
+                          .permalinkFor(_workItemIdController.text.trim())
+                      : null,
                 ),
             ],
 
