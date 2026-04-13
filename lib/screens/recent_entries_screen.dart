@@ -25,6 +25,8 @@ class _RecentEntriesScreenState extends State<RecentEntriesScreen> {
       _timeEntryProvider?.removeListener(_onEntriesChanged);
       _timeEntryProvider = provider;
       _timeEntryProvider!.addListener(_onEntriesChanged);
+      // Entries may already be loaded (e.g. switching tabs) — prefetch now.
+      _onEntriesChanged();
     }
   }
 
