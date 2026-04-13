@@ -41,6 +41,19 @@ class TimeEntryCard extends StatelessWidget {
     final adoService = hasAdoRef ? context.watch<AdoService>() : null;
     final workItemId = entry.externalReference?.id ?? '';
 
+    // Self-trigger fetch when the card renders without cached data.
+    // Handles race where AdoInstanceProvider hasn't finished loading
+    // from SharedPreferences when the screen-level prefetch ran.
+    if (matchingInstance != null &&
+        matchingInstance.pat != null &&
+        adoService != null &&
+        adoService.getCached(matchingInstance.label, workItemId) == null &&
+        !adoService.isPending(matchingInstance.label, workItemId)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        adoService.fetchWorkItem(matchingInstance!, workItemId);
+      });
+    }
+
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
       child: ListTile(
