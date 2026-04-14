@@ -193,7 +193,7 @@ class _EditTimeScreenState extends State<EditTimeScreen> {
       final workItemId = _workItemIdController.text.trim();
       final adoService = context.read<AdoService>();
       final projectGuid =
-          await adoService.fetchProjectGuid(_selectedAdoInstance!);
+          await adoService.getHarvestConnectionGuid(_selectedAdoInstance!);
 
       // Use the work item type from the preview, or from the existing reference, or fallback
       var workItemType = _previewItem?.workItemType;
