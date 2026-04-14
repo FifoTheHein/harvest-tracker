@@ -16,6 +16,8 @@ A personal Flutter web app for logging time entries to [Harvest](https://www.get
 - **Live work item preview** — type a work item number and see the title + state fetched from ADO in real time (debounced 600 ms), with a colour-coded state dot
 - **Auto-prefixed notes** — notes are automatically prefixed, e.g. `Transport Azure DevOps User Story #13483 - your notes`
 - **Clickable work item cards** — tapping the card opens the work item in ADO in a new tab
+- **Native Harvest composite IDs** — entries are saved with the correct `AzureDevOps_{guid}_{type}_{id}` format that Harvest's own ADO integration uses, so time entries appear in the Harvest widget inside Azure DevOps
+- **Automatic GUID detection** — the Harvest connection GUID is learned automatically from any natively-created entry; no manual configuration needed
 
 ### Recent Entries
 - **Default landing screen** — the app opens directly on today's entries
@@ -26,6 +28,8 @@ A personal Flutter web app for logging time entries to [Harvest](https://www.get
 
 ### Settings
 - All credentials and ADO instances persist in browser `localStorage` and take effect immediately without recompiling
+- **Clear Cache & Refresh** — force-reloads time entries from the Harvest API
+- **Migrate ADO References** — upgrades existing entries for the current week (Mon–Sun) from plain numeric external reference IDs to the correct native composite format; also re-migrates any entries that were previously saved with the wrong GUID
 
 ## Project Structure
 
@@ -113,11 +117,13 @@ Serve the `build/web` directory from any static host.
 
 All settings persist in browser `localStorage`:
 
-| Setting         | Description                                                           |
-| --------------- | --------------------------------------------------------------------- |
-| API Token       | Harvest personal access token                                         |
-| Account ID      | Harvest account ID                                                    |
-| Default Project | Pre-selected project on the Log Time screen                           |
-| Default Task    | Pre-selected task for the default project                             |
-| ADO Instances   | Add, edit, or remove Azure DevOps project URLs                        |
-| PAT (per ADO)   | Personal Access Token for each ADO instance — enables work item fetch |
+| Setting                  | Description                                                                                      |
+| ------------------------ | ------------------------------------------------------------------------------------------------ |
+| API Token                | Harvest personal access token                                                                    |
+| Account ID               | Harvest account ID                                                                               |
+| Default Project          | Pre-selected project on the Log Time screen                                                      |
+| Default Task             | Pre-selected task for the default project                                                        |
+| ADO Instances            | Add, edit, or remove Azure DevOps project URLs                                                   |
+| PAT (per ADO)            | Personal Access Token for each ADO instance — enables work item fetch                            |
+| Clear Cache & Refresh    | Discards cached time entries and reloads from the Harvest API                                    |
+| Migrate ADO References   | Upgrades current-week entries to the native composite ID format; corrects any wrong-GUID entries |
