@@ -6,6 +6,7 @@ import '../models/time_entry.dart';
 import '../providers/ado_instance_provider.dart';
 import '../providers/assignment_provider.dart';
 import '../providers/time_entry_provider.dart';
+import '../services/ado_service.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -382,6 +383,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  Future<void> _migrateAdoReferences(BuildContext context) async {
+    final entryProvider = context.read<TimeEntryProvider>();
+    final adoService = context.read<AdoService>();
+    final instances = context.read<AdoInstanceProvider>().instances;
+
+    final candidateCount = entryProvider.entries
+        .where((e) =>
+            e.externalReference != null &&
+            !e.externalReference!.id.startsWith('AzureDevOps_'))
+        .length;
+
+    if (candidateCount == 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No entries need migration')),
+      );
+      return;
+    }
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => _MigrationProgressDialog(
+        stream: entryProvider.migrateAdoReferences(adoService, instances),
+      ),
+    );
+  }
+
   Future<void> _clearCache(BuildContext context) async {
     context.read<TimeEntryProvider>().entries.clear();
     await context.read<TimeEntryProvider>().loadRecentEntries();
@@ -495,6 +523,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: 8),
           OutlinedButton.icon(
+            onPressed: () => _migrateAdoReferences(context),
+            icon: const Icon(Icons.sync),
+            label: const Text('Migrate ADO References'),
+          ),
+          const SizedBox(height: 8),
+          OutlinedButton.icon(
             onPressed: () => _reset(context),
             icon: const Icon(Icons.restore),
             label: const Text('Reset to Defaults'),
@@ -506,6 +540,70 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _MigrationProgressDialog extends StatefulWidget {
+  final Stream<({int done, int total, int failed})> stream;
+
+  const _MigrationProgressDialog({required this.stream});
+
+  @override
+  State<_MigrationProgressDialog> createState() =>
+      _MigrationProgressDialogState();
+}
+
+class _MigrationProgressDialogState extends State<_MigrationProgressDialog> {
+  int done = 0;
+  int total = 0;
+  int failed = 0;
+  bool finished = false;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.stream.listen((progress) {
+      if (mounted) {
+        setState(() {
+          done = progress.done;
+          total = progress.total;
+          failed = progress.failed;
+          finished = progress.total > 0 && progress.done == progress.total;
+        });
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Migrating ADO References'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (!finished)
+            LinearProgressIndicator(
+              value: total == 0 ? null : done / total,
+            ),
+          const SizedBox(height: 12),
+          Text(
+            total == 0
+                ? 'Starting...'
+                : finished
+                    ? 'Done: ${total - failed} updated, $failed failed'
+                    : '$done / $total',
+          ),
+        ],
+      ),
+      actions: finished
+          ? [
+              FilledButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK'),
+              ),
+            ]
+          : [],
     );
   }
 }

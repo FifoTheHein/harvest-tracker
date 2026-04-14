@@ -126,7 +126,7 @@ class _LogTimeScreenState extends State<LogTimeScreen> {
       final workItemId = _workItemIdController.text.trim();
       final adoService = context.read<AdoService>();
       final projectGuid =
-          await adoService.fetchProjectGuid(_selectedAdoInstance!);
+          await adoService.getHarvestConnectionGuid(_selectedAdoInstance!);
       final workItemType = _previewItem?.workItemType ?? 'Work Item';
 
       final refId = projectGuid != null
