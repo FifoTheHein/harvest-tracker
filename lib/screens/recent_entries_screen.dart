@@ -11,6 +11,7 @@ import '../providers/project_category_provider.dart';
 import '../providers/time_entry_provider.dart';
 import '../services/ado_service.dart';
 import '../widgets/time_entry_card.dart';
+import '../widgets/weekly_progress_ring.dart';
 import '../widgets/error_banner.dart';
 import '../theme/harvest_tokens.dart';
 
@@ -402,6 +403,9 @@ class _WeekSummaryStrip extends StatelessWidget {
   Widget _buildCompact(
       BuildContext context, List<_DayData> days, double weekTotal) {
     final colorScheme = Theme.of(context).colorScheme;
+    final weeklyGoal = context.select<ProjectCategoryProvider, double>(
+      (p) => p.weeklyGoalHours,
+    );
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
@@ -443,26 +447,19 @@ class _WeekSummaryStrip extends StatelessWidget {
               ),
             );
           }),
-          Expanded(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Week',
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: colorScheme.onSurface,
-                        fontWeight: FontWeight.w600,
-                      ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  isLoading ? '–' : _fmt(weekTotal),
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurface,
-                        fontWeight: FontWeight.w600,
-                      ),
-                ),
-              ],
+          Container(
+            padding: const EdgeInsets.only(left: 8),
+            decoration: const BoxDecoration(
+              border: Border(
+                  left: BorderSide(color: Color(0xFFE8E1D4))),
+            ),
+            child: Center(
+              child: WeeklyProgressRing(
+                hours: isLoading ? 0 : weekTotal,
+                goal: weeklyGoal,
+                size: 64,
+                stroke: 6,
+              ),
             ),
           ),
         ],
@@ -576,60 +573,18 @@ class _WeekSummaryStrip extends StatelessWidget {
               );
             }),
             Container(
-              width: 1,
-              height: 60,
-              color: HarvestTokens.border,
-              margin: const EdgeInsets.symmetric(horizontal: 4),
-            ),
-            SizedBox(
-              width: 56,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text(
-                    'WEEK',
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.6,
-                      color: HarvestTokens.text2,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    isLoading ? '–' : _fmt(weekTotal),
-                    style: const TextStyle(
-                      fontFamily: 'monospace',
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: -0.4,
-                      color: HarvestTokens.text,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'of ${weeklyGoal % 1 == 0 ? weeklyGoal.toInt() : weeklyGoal}h',
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: HarvestTokens.text3,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(2),
-                    child: SizedBox(
-                      height: 3,
-                      child: LinearProgressIndicator(
-                        value: weeklyGoal > 0
-                            ? (weekTotal / weeklyGoal).clamp(0.0, 1.0)
-                            : 0,
-                        backgroundColor: HarvestTokens.surface3,
-                        color: HarvestTokens.brand,
-                        minHeight: 3,
-                      ),
-                    ),
-                  ),
-                ],
+              padding: const EdgeInsets.only(left: 8),
+              decoration: const BoxDecoration(
+                border: Border(
+                    left: BorderSide(color: Color(0xFFE8E1D4))),
+              ),
+              child: Center(
+                child: WeeklyProgressRing(
+                  hours: isLoading ? 0 : weekTotal,
+                  goal: weeklyGoal,
+                  size: 76,
+                  stroke: 7,
+                ),
               ),
             ),
           ],
