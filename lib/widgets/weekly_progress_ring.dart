@@ -6,6 +6,7 @@ class WeeklyProgressRing extends StatelessWidget {
   final double goal;
   final double size;
   final double stroke;
+  final bool showCaption;
 
   const WeeklyProgressRing({
     super.key,
@@ -13,75 +14,133 @@ class WeeklyProgressRing extends StatelessWidget {
     this.goal = 40,
     this.size = 96,
     this.stroke = 9,
+    this.showCaption = true,
   });
+
+  static const _orange = Color(0xFFFA5D24);
+  static const _warn = Color(0xFFD97706);
+  static const _textDark = Color(0xFF1A1814);
+  static const _text3 = Color(0xFF8A837A);
+  static const _track = Color(0xFFF1ECE3);
 
   @override
   Widget build(BuildContext context) {
     final pct = (hours / goal).clamp(0.0, 1.0);
     final isOver = hours > goal;
-    final ringColor = isOver
-        ? const Color(0xFFD97706)
-        : const Color(0xFFFA5D24);
+    final ringColor = isOver ? _warn : _orange;
+    final goalLabel = 'of ${goal % 1 == 0 ? goal.toInt() : goal}h';
 
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0, end: pct),
       duration: const Duration(milliseconds: 400),
       curve: Curves.easeOut,
-      builder: (ctx, animPct, _) => SizedBox(
-        width: size,
-        height: size,
-        child: CustomPaint(
-          painter: _RingPainter(
-            pct: animPct,
-            stroke: stroke,
-            ringColor: ringColor,
-            trackColor: const Color(0xFFF1ECE3),
-          ),
-          child: Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  _fmtDuration(hours),
-                  style: TextStyle(
-                    fontFamily: 'Courier New',
-                    fontFeatures: const [FontFeature.tabularFigures()],
-                    fontSize: _labelFontSize(_fmtDuration(hours)),
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.6,
-                    color: isOver
-                        ? const Color(0xFFD97706)
-                        : const Color(0xFF1A1814),
-                    height: 1,
-                  ),
-                ),
-                if (size >= 72) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    'of ${goal % 1 == 0 ? goal.toInt() : goal}h',
-                    style: const TextStyle(
-                      fontSize: 10,
-                      color: Color(0xFF8A837A),
-                      fontWeight: FontWeight.w500,
+      builder: (ctx, animPct, _) {
+        final ring = SizedBox(
+          width: size,
+          height: size,
+          child: CustomPaint(
+            painter: _RingPainter(
+              pct: animPct,
+              stroke: stroke,
+              ringColor: ringColor,
+              trackColor: _track,
+            ),
+            // Over-goal: center is empty — label shown beside the ring
+            child: isOver
+                ? null
+                : Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          _fmt(hours),
+                          style: TextStyle(
+                            fontFamily: 'Courier New',
+                            fontFeatures: const [FontFeature.tabularFigures()],
+                            fontSize: _labelFontSize(_fmt(hours)),
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: -0.6,
+                            color: _textDark,
+                            height: 1,
+                          ),
+                        ),
+                        if (size >= 72) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            goalLabel,
+                            style: const TextStyle(
+                              fontSize: 10,
+                              color: _text3,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ),
-                ],
-              ],
-            ),
           ),
-        ),
-      ),
+        );
+
+        // Over-goal: ring + label side-by-side
+        final ringRow = isOver
+            ? Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  ring,
+                  const SizedBox(width: 10),
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _fmt(hours),
+                        style: TextStyle(
+                          fontFamily: 'Courier New',
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                          fontSize: _labelFontSize(_fmt(hours)),
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -0.6,
+                          color: _warn,
+                          height: 1,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        goalLabel,
+                        style: const TextStyle(
+                          fontSize: 10,
+                          color: _text3,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              )
+            : ring;
+
+        if (!showCaption) return ringRow;
+
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ringRow,
+            const SizedBox(height: 10),
+            _Caption(hours: hours, goal: goal, isOver: isOver),
+          ],
+        );
+      },
     );
   }
 
   double _labelFontSize(String label) {
-    // Inner diameter ≈ size - stroke*2. Scale down for longer labels.
     if (label.length <= 2) return size >= 96 ? 22 : 18;
     if (label.length <= 4) return size >= 96 ? 20 : 16;
     return size >= 96 ? 16 : 13;
   }
 
-  String _fmtDuration(double h) {
+  static String _fmt(double h) {
     final total = (h * 60).round();
     final hh = total ~/ 60;
     final mm = total % 60;
@@ -89,6 +148,68 @@ class WeeklyProgressRing extends StatelessWidget {
     if (hh == 0) return '${mm}m';
     if (mm == 0) return '${hh}h';
     return '${hh}h ${mm}m';
+  }
+}
+
+class _Caption extends StatelessWidget {
+  final double hours;
+  final double goal;
+  final bool isOver;
+
+  const _Caption({
+    required this.hours,
+    required this.goal,
+    required this.isOver,
+  });
+
+  static const _warn = Color(0xFFD97706);
+  static const _text2 = Color(0xFF5C5650);
+  static const _text3 = Color(0xFF8A837A);
+
+  String _fmt(double h) {
+    final total = (h * 60).round();
+    final hh = total ~/ 60;
+    final mm = total % 60;
+    if (hh == 0 && mm == 0) return '–';
+    if (hh == 0) return '${mm}m';
+    if (mm == 0) return '${hh}h';
+    return '${hh}h ${mm}m';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final String helperText;
+    if (isOver) {
+      helperText = '+${_fmt(hours - goal)} over';
+    } else if (hours >= goal) {
+      helperText = 'Goal met';
+    } else {
+      helperText = '${_fmt(goal - hours)} to go';
+    }
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Text(
+          'THIS WEEK',
+          style: TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.6,
+            color: _text3,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          helperText,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: isOver ? _warn : _text2,
+          ),
+        ),
+      ],
+    );
   }
 }
 
@@ -117,12 +238,14 @@ class _RingPainter extends CustomPainter {
       ..color = trackColor;
     canvas.drawCircle(center, radius, track);
 
-    final progress = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = stroke
-      ..strokeCap = StrokeCap.round
-      ..color = ringColor;
-    canvas.drawArc(rect, -math.pi / 2, 2 * math.pi * pct, false, progress);
+    if (pct > 0) {
+      final progress = Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = stroke
+        ..strokeCap = StrokeCap.round
+        ..color = ringColor;
+      canvas.drawArc(rect, -math.pi / 2, 2 * math.pi * pct, false, progress);
+    }
   }
 
   @override
