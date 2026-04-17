@@ -110,94 +110,94 @@ class WorkItemChip extends StatelessWidget {
         ),
         clipBehavior: Clip.hardEdge,
         child: IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Container(width: 3, color: sColor),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(10, 8, 12, 8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+        child: Stack(
+          children: [
+            Positioned(
+              left: 0,
+              top: 0,
+              bottom: 0,
+              child: Container(width: 3, color: sColor),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(13, 8, 12, 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    cached!.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Row(
                     children: [
                       Text(
-                        cached!.title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 13,
+                        '#$workItemId',
+                        style: TextStyle(
+                          fontFamily: 'Courier New',
+                          fontSize: 11,
                           fontWeight: FontWeight.w600,
+                          color: sColor,
                         ),
                       ),
-                      const SizedBox(height: 2),
-                      Row(
-                        children: [
-                          Text(
-                            '#$workItemId',
-                            style: TextStyle(
-                              fontFamily: 'Courier New',
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: sColor,
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          Text('·',
-                              style: TextStyle(
-                                  fontSize: 11, color: HarvestTokens.text4)),
-                          const SizedBox(width: 4),
-                          Text(
-                            cached!.state,
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: sColor,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          if (cached!.workItemType != null) ...[
-                            const SizedBox(width: 4),
-                            Text('·',
-                                style: TextStyle(
-                                    fontSize: 11, color: HarvestTokens.text4)),
-                            const SizedBox(width: 4),
-                            Text(
-                              cached!.workItemType!,
-                              style: TextStyle(
-                                  fontSize: 11, color: HarvestTokens.text3),
-                            ),
-                          ],
-                          const Spacer(),
-                          if (cached!.createdByAvatarUrl != null ||
-                              initials != null) ...[
-                            CircleAvatar(
-                              radius: 8,
-                              backgroundColor: HarvestTokens.brandTint,
-                              backgroundImage: cached!.createdByAvatarUrl != null
-                                  ? NetworkImage(cached!.createdByAvatarUrl!)
-                                  : null,
-                              child: cached!.createdByAvatarUrl == null
-                                  ? Text(
-                                      initials ?? '',
-                                      style: const TextStyle(
-                                        fontSize: 9,
-                                        fontWeight: FontWeight.w700,
-                                        color: HarvestTokens.brand600,
-                                      ),
-                                    )
-                                  : null,
-                            ),
-                            const SizedBox(width: 4),
-                          ],
-                          Icon(Icons.open_in_new,
-                              size: 12, color: HarvestTokens.text3),
-                        ],
+                      const SizedBox(width: 4),
+                      Text('·',
+                          style: TextStyle(
+                              fontSize: 11, color: HarvestTokens.text4)),
+                      const SizedBox(width: 4),
+                      Text(
+                        cached!.state,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: sColor,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
+                      if (cached!.workItemType != null) ...[
+                        const SizedBox(width: 4),
+                        Text('·',
+                            style: TextStyle(
+                                fontSize: 11, color: HarvestTokens.text4)),
+                        const SizedBox(width: 4),
+                        Text(
+                          cached!.workItemType!,
+                          style: TextStyle(
+                              fontSize: 11, color: HarvestTokens.text3),
+                        ),
+                      ],
+                      const Spacer(),
+                      if (initials != null) ...[
+                        Container(
+                          width: 16,
+                          height: 16,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: HarvestTokens.brandTint,
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            initials,
+                            style: const TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.w700,
+                              color: HarvestTokens.brand600,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                      ],
+                      Icon(Icons.open_in_new,
+                          size: 12, color: HarvestTokens.text3),
                     ],
                   ),
-                ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
