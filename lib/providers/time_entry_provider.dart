@@ -33,6 +33,40 @@ class TimeEntryProvider extends ChangeNotifier {
 
   DateTime selectedDate = DateTime.now();
 
+  String _errorMessageFrom(Object error) {
+    if (error is TimeoutException) {
+      return 'Request timed out. Please try again.';
+    }
+    if (error is FormatException) {
+      return 'Received an invalid response from the server.';
+    }
+    final message = error.toString().trim();
+    if (message.isEmpty || message == 'Exception' || message == 'null') {
+      return 'An unexpected error occurred. Please try again.';
+    }
+    return message;
+  }
+
+  Future<bool> _runMutation(Future<void> operation()) async {
+    isSubmitting = true;
+    error = null;
+    successMessage = null;
+    notifyListeners();
+    try {
+      await operation();
+      return true;
+    } on HarvestApiException catch (e) {
+      error = '${e.statusCode}: ${e.message}';
+      return false;
+    } catch (e) {
+      error = _errorMessageFrom(e);
+      return false;
+    } finally {
+      isSubmitting = false;
+      notifyListeners();
+    }
+  }
+
   Future<void> loadRecentEntries({DateTime? date, bool silent = false}) async {
     // Don't start a silent refresh while another mutating operation or a
     // foreground load is already in progress, otherwise the silent request can
@@ -83,7 +117,7 @@ class TimeEntryProvider extends ChangeNotifier {
       if (!silent) error = '${e.statusCode}: ${e.message}';
     } catch (e) {
       if (requestId != _loadRecentEntriesRequestId) return;
-      if (!silent) error = e.toString();
+      if (!silent) error = _errorMessageFrom(e);
     } finally {
       if (requestId == _loadRecentEntriesRequestId) {
         if (!silent) isLoading = false;
@@ -128,11 +162,7 @@ class TimeEntryProvider extends ChangeNotifier {
   }
 
   Future<bool> update(int entryId, UpdateTimeEntryRequest request) async {
-    isSubmitting = true;
-    error = null;
-    successMessage = null;
-    notifyListeners();
-    try {
+    return _runMutation(() async {
       final updated = await _service.updateTimeEntry(entryId, request);
       // Invalidate any concurrent silent refresh so it doesn't overwrite our
       // locally-applied change when its response eventually arrives.
@@ -153,17 +183,7 @@ class TimeEntryProvider extends ChangeNotifier {
         }
       }
       successMessage = 'Updated ${updated.projectName}';
-      return true;
-    } on HarvestApiException catch (e) {
-      error = '${e.statusCode}: ${e.message}';
-      return false;
-    } catch (e) {
-      error = e.toString();
-      return false;
-    } finally {
-      isSubmitting = false;
-      notifyListeners();
-    }
+    });
   }
 
   Stream<({int done, int total, int failed})> migrateAdoReferences(
@@ -313,11 +333,7 @@ class TimeEntryProvider extends ChangeNotifier {
   }
 
   Future<bool> delete(int entryId) async {
-    isSubmitting = true;
-    error = null;
-    successMessage = null;
-    notifyListeners();
-    try {
+    return _runMutation(() async {
       await _service.deleteTimeEntry(entryId);
       // Invalidate any concurrent silent refresh so it doesn't overwrite the
       // deletion when its response eventually arrives.
@@ -332,25 +348,11 @@ class TimeEntryProvider extends ChangeNotifier {
         entries.removeAt(removedIndex);
       }
       successMessage = 'Entry deleted';
-      return true;
-    } on HarvestApiException catch (e) {
-      error = '${e.statusCode}: ${e.message}';
-      return false;
-    } catch (e) {
-      error = e.toString();
-      return false;
-    } finally {
-      isSubmitting = false;
-      notifyListeners();
-    }
+    });
   }
 
   Future<bool> submit(CreateTimeEntryRequest request) async {
-    isSubmitting = true;
-    error = null;
-    successMessage = null;
-    notifyListeners();
-    try {
+    return _runMutation(() async {
       final entry = await _service.createTimeEntry(request);
       // Invalidate any concurrent silent refresh so it doesn't overwrite our
       // locally-inserted entry when its response eventually arrives.
@@ -364,16 +366,6 @@ class TimeEntryProvider extends ChangeNotifier {
       }
       successMessage =
           'Logged ${entry.hours}h on ${entry.projectName} (${entry.spentDate})';
-      return true;
-    } on HarvestApiException catch (e) {
-      error = '${e.statusCode}: ${e.message}';
-      return false;
-    } catch (e) {
-      error = e.toString();
-      return false;
-    } finally {
-      isSubmitting = false;
-      notifyListeners();
-    }
+    });
   }
 }
