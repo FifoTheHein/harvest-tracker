@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/time_entry.dart';
 import '../services/ado_service.dart';
 import '../services/harvest_service.dart';
@@ -17,17 +19,39 @@ class TimeEntryProvider extends ChangeNotifier {
   String? successMessage;
   int _loadRecentEntriesRequestId = 0;
 
+  Timer? _refreshTimer;
+  static const int _defaultRefreshIntervalMinutes = 15;
+  int refreshIntervalMinutes = _defaultRefreshIntervalMinutes;
+  static const _kRefreshKey = 'auto_refresh_interval_minutes';
+
+  int _sanitizeRefreshInterval(int? minutes) {
+    if (minutes == null || minutes <= 0) {
+      return _defaultRefreshIntervalMinutes;
+    }
+    return minutes;
+  }
+
   DateTime selectedDate = DateTime.now();
 
-  Future<void> loadRecentEntries({DateTime? date}) async {
+  Future<void> loadRecentEntries({DateTime? date, bool silent = false}) async {
+    // Don't start a silent refresh while another mutating operation or a
+    // foreground load is already in progress, otherwise the silent request can
+    // advance `_loadRecentEntriesRequestId` and cause the foreground load to
+    // skip clearing `isLoading` in `finally`.
+    if (silent && (isSubmitting || isLoading)) return;
+
     final requestId = ++_loadRecentEntriesRequestId;
     final targetDate = date ?? selectedDate;
     selectedDate = targetDate;
-    isLoading = true;
-    error = null;
-    entries = [];
-    weeklyTotals = {};
-    notifyListeners();
+
+    if (!silent) {
+      isLoading = true;
+      error = null;
+      entries = [];
+      weeklyTotals = {};
+      notifyListeners();
+    }
+
     try {
       final fmt = DateFormat('yyyy-MM-dd');
       final dayOfWeek = targetDate.weekday; // 1=Mon, 7=Sun
@@ -42,6 +66,8 @@ class TimeEntryProvider extends ChangeNotifier {
 
       if (requestId != _loadRecentEntriesRequestId) return;
 
+      error = null;
+
       // Compute weekly totals
       final totals = <String, double>{};
       for (final e in all) {
@@ -54,15 +80,51 @@ class TimeEntryProvider extends ChangeNotifier {
       entries.sort((a, b) => b.spentDate.compareTo(a.spentDate));
     } on HarvestApiException catch (e) {
       if (requestId != _loadRecentEntriesRequestId) return;
-      error = '${e.statusCode}: ${e.message}';
+      if (!silent) error = '${e.statusCode}: ${e.message}';
     } catch (e) {
       if (requestId != _loadRecentEntriesRequestId) return;
-      error = e.toString();
+      if (!silent) error = e.toString();
     } finally {
-      if (requestId != _loadRecentEntriesRequestId) return;
-      isLoading = false;
-      notifyListeners();
+      if (requestId == _loadRecentEntriesRequestId) {
+        if (!silent) isLoading = false;
+        notifyListeners();
+      }
     }
+  }
+
+  /// Reads the persisted interval and starts the background refresh timer.
+  /// Call once after the initial [loadRecentEntries] in main.dart.
+  Future<void> startAutoRefresh() async {
+    final prefs = await SharedPreferences.getInstance();
+    refreshIntervalMinutes =
+        _sanitizeRefreshInterval(prefs.getInt(_kRefreshKey));
+    _restartTimer();
+  }
+
+  /// Updates the interval, persists it, and restarts the timer immediately.
+  Future<void> setRefreshInterval(int minutes) async {
+    final sanitizedMinutes = _sanitizeRefreshInterval(minutes);
+    refreshIntervalMinutes = sanitizedMinutes;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_kRefreshKey, sanitizedMinutes);
+    _restartTimer();
+    notifyListeners();
+  }
+
+  void _restartTimer() {
+    _refreshTimer?.cancel();
+    refreshIntervalMinutes =
+        _sanitizeRefreshInterval(refreshIntervalMinutes);
+    _refreshTimer = Timer.periodic(
+      Duration(minutes: refreshIntervalMinutes),
+      (_) => loadRecentEntries(silent: true),
+    );
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    super.dispose();
   }
 
   Future<bool> update(int entryId, UpdateTimeEntryRequest request) async {
@@ -72,6 +134,9 @@ class TimeEntryProvider extends ChangeNotifier {
     notifyListeners();
     try {
       final updated = await _service.updateTimeEntry(entryId, request);
+      // Invalidate any concurrent silent refresh so it doesn't overwrite our
+      // locally-applied change when its response eventually arrives.
+      _loadRecentEntriesRequestId++;
       final idx = entries.indexWhere((e) => e.id == entryId);
       if (idx != -1) entries[idx] = updated;
       successMessage = 'Updated ${updated.projectName}';
@@ -241,6 +306,9 @@ class TimeEntryProvider extends ChangeNotifier {
     notifyListeners();
     try {
       await _service.deleteTimeEntry(entryId);
+      // Invalidate any concurrent silent refresh so it doesn't overwrite the
+      // deletion when its response eventually arrives.
+      _loadRecentEntriesRequestId++;
       entries.removeWhere((e) => e.id == entryId);
       successMessage = 'Entry deleted';
       return true;
@@ -263,6 +331,9 @@ class TimeEntryProvider extends ChangeNotifier {
     notifyListeners();
     try {
       final entry = await _service.createTimeEntry(request);
+      // Invalidate any concurrent silent refresh so it doesn't overwrite our
+      // locally-inserted entry when its response eventually arrives.
+      _loadRecentEntriesRequestId++;
       // Only add to the visible list if it matches the currently viewed date
       if (entry.spentDate ==
           DateFormat('yyyy-MM-dd').format(selectedDate)) {
