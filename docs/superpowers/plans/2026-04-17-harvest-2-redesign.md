@@ -108,7 +108,7 @@ theme: ThemeData(
     seedColor: HarvestTokens.brand,
   ),
   scaffoldBackgroundColor: HarvestTokens.bg,
-  cardTheme: const CardTheme(
+  cardTheme: const CardThemeData(
     color: HarvestTokens.surface,
     elevation: 0,
     margin: EdgeInsets.symmetric(horizontal: 4, vertical: 4),
@@ -148,7 +148,9 @@ import '../theme/harvest_tokens.dart';
 
 - [ ] **Step 1.4: Replace color literals in `lib/screens/recent_entries_screen.dart`**
 
-In `_DailyProgressBar.build`, replace the `barColor` line:
+In `_DailyProgressBar.build`, there are four replacements in total:
+
+1. Replace the `barColor` line:
 
 ```dart
 // Before
@@ -158,7 +160,7 @@ final barColor = isOver ? Colors.orange : colorScheme.primary;
 final barColor = isOver ? HarvestTokens.warn : HarvestTokens.brand;
 ```
 
-Replace the overflow pulse marker color:
+2. Replace the overflow pulse marker color:
 
 ```dart
 // Before
@@ -166,6 +168,26 @@ color: Colors.orange.shade800,
 
 // After
 color: HarvestTokens.brand600,
+```
+
+3. Replace the "Total: Xh" text color:
+
+```dart
+// Before
+color: isOver ? Colors.orange : colorScheme.onSurface,
+
+// After
+color: isOver ? HarvestTokens.warn : colorScheme.onSurface,
+```
+
+4. Replace the "+Xh over goal" / "remaining" text color:
+
+```dart
+// Before
+color: isOver ? Colors.orange : colorScheme.onSurfaceVariant,
+
+// After
+color: isOver ? HarvestTokens.warn : colorScheme.onSurfaceVariant,
 ```
 
 Add import at top:

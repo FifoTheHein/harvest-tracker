@@ -6,6 +6,7 @@ import 'services/ado_service.dart';
 import 'providers/time_entry_provider.dart';
 import 'screens/home_screen.dart';
 import 'services/harvest_service.dart';
+import 'theme/harvest_tokens.dart';
 
 void main() {
   runApp(const HarvestApp());
@@ -40,8 +41,19 @@ class HarvestApp extends StatelessWidget {
         title: 'Harvest Tracker 2.0',
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFFFA5D24),
+            seedColor: HarvestTokens.brand,
           ),
+          scaffoldBackgroundColor: HarvestTokens.bg,
+          cardTheme: const CardThemeData(
+            color: HarvestTokens.surface,
+            elevation: 0,
+            margin: EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(10)),
+              side: BorderSide(color: HarvestTokens.border),
+            ),
+          ),
+          dividerColor: HarvestTokens.divider,
           useMaterial3: true,
         ),
         home: const HomeScreen(),

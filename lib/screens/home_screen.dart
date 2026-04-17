@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'log_time_screen.dart';
 import 'recent_entries_screen.dart';
 import 'settings_screen.dart';
+import '../theme/harvest_tokens.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -42,7 +43,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Harvest Tracker 2.0'),
-        backgroundColor: const Color(0xFFFA5D24),
+        backgroundColor: HarvestTokens.brand,
         foregroundColor: Colors.white,
         elevation: 2,
       ),

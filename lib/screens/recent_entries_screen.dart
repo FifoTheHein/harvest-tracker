@@ -6,6 +6,7 @@ import '../providers/time_entry_provider.dart';
 import '../services/ado_service.dart';
 import '../widgets/time_entry_card.dart';
 import '../widgets/error_banner.dart';
+import '../theme/harvest_tokens.dart';
 
 class RecentEntriesScreen extends StatefulWidget {
   const RecentEntriesScreen({super.key});
@@ -326,7 +327,7 @@ class _DailyProgressBar extends StatelessWidget {
     final overflow = total - _goal;
 
     final colorScheme = Theme.of(context).colorScheme;
-    final barColor = isOver ? Colors.orange : colorScheme.primary;
+    final barColor = isOver ? HarvestTokens.warn : HarvestTokens.brand;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -340,7 +341,7 @@ class _DailyProgressBar extends StatelessWidget {
               Text(
                 'Total: ${_fmt(total)}',
                 style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color: isOver ? Colors.orange : colorScheme.onSurface,
+                      color: isOver ? HarvestTokens.warn : colorScheme.onSurface,
                       fontWeight: FontWeight.w600,
                     ),
               ),
@@ -350,7 +351,7 @@ class _DailyProgressBar extends StatelessWidget {
                     : '${_fmt(_goal - total)} remaining',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: isOver
-                          ? Colors.orange
+                          ? HarvestTokens.warn
                           : colorScheme.onSurfaceVariant,
                     ),
               ),
@@ -381,7 +382,7 @@ class _DailyProgressBar extends StatelessWidget {
                       child: Container(
                         width: 2,
                         height: 8,
-                        color: Colors.orange.shade800,
+                        color: HarvestTokens.brand600,
                       ),
                     ),
                   ),
