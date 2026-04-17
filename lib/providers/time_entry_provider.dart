@@ -10,29 +10,56 @@ class TimeEntryProvider extends ChangeNotifier {
   TimeEntryProvider(this._service);
 
   List<TimeEntry> entries = [];
+  Map<String, double> weeklyTotals = {};
   bool isLoading = false;
   bool isSubmitting = false;
   String? error;
   String? successMessage;
+  int _loadRecentEntriesRequestId = 0;
 
   DateTime selectedDate = DateTime.now();
 
   Future<void> loadRecentEntries({DateTime? date}) async {
-    if (date != null) selectedDate = date;
+    final requestId = ++_loadRecentEntriesRequestId;
+    final targetDate = date ?? selectedDate;
+    selectedDate = targetDate;
     isLoading = true;
     error = null;
+    entries = [];
+    weeklyTotals = {};
     notifyListeners();
     try {
-      final from = DateFormat('yyyy-MM-dd').format(selectedDate);
-      final all = await _service.fetchTimeEntries(from: from);
-      // Filter to just the selected date
-      entries = all.where((e) => e.spentDate == from).toList();
+      final fmt = DateFormat('yyyy-MM-dd');
+      final dayOfWeek = targetDate.weekday; // 1=Mon, 7=Sun
+      final monday = targetDate.subtract(Duration(days: dayOfWeek - 1));
+      final sunday = monday.add(const Duration(days: 6));
+      final selectedStr = fmt.format(targetDate);
+
+      final all = await _service.fetchTimeEntries(
+        from: fmt.format(monday),
+        to: fmt.format(sunday),
+      );
+
+      if (requestId != _loadRecentEntriesRequestId) return;
+
+      // Compute weekly totals
+      final totals = <String, double>{};
+      for (final e in all) {
+        totals[e.spentDate] = (totals[e.spentDate] ?? 0) + e.hours;
+      }
+      weeklyTotals = totals;
+
+      // Filter to selected day only
+      entries = all.where((e) => e.spentDate == selectedStr).toList();
       entries.sort((a, b) => b.spentDate.compareTo(a.spentDate));
     } on HarvestApiException catch (e) {
+      if (requestId != _loadRecentEntriesRequestId) return;
       error = '${e.statusCode}: ${e.message}';
     } catch (e) {
+      if (requestId != _loadRecentEntriesRequestId) return;
       error = e.toString();
     } finally {
+      if (requestId != _loadRecentEntriesRequestId) return;
       isLoading = false;
       notifyListeners();
     }
