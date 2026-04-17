@@ -345,9 +345,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       await prefs.remove('default_task_id');
     }
 
-    await prefs.setInt(
-        'auto_refresh_interval_minutes', _autoRefreshIntervalMinutes);
-
     if (!context.mounted) return;
 
     // Reload data with new credentials and apply new refresh interval
