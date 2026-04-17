@@ -31,7 +31,7 @@ class _SectionHeader extends StatelessWidget {
             ),
           ),
         ),
-        ?action,
+        if (action != null) action!,
       ],
     );
   }
