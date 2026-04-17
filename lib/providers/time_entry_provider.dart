@@ -26,8 +26,11 @@ class TimeEntryProvider extends ChangeNotifier {
   DateTime selectedDate = DateTime.now();
 
   Future<void> loadRecentEntries({DateTime? date, bool silent = false}) async {
-    // Don't start a silent refresh while a submit/update/delete is in progress.
-    if (silent && isSubmitting) return;
+    // Don't start a silent refresh while another mutating operation or a
+    // foreground load is already in progress, otherwise the silent request can
+    // advance `_loadRecentEntriesRequestId` and cause the foreground load to
+    // skip clearing `isLoading` in `finally`.
+    if (silent && (isSubmitting || isLoading)) return;
 
     final requestId = ++_loadRecentEntriesRequestId;
     final targetDate = date ?? selectedDate;
