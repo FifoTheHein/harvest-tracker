@@ -469,12 +469,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _reset(BuildContext context) async {
+    final timeEntryProvider = context.read<TimeEntryProvider>();
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('harvest_token');
     await prefs.remove('harvest_account_id');
     await prefs.remove('default_project_id');
     await prefs.remove('default_task_id');
     await prefs.remove('auto_refresh_interval_minutes');
+    timeEntryProvider.setRefreshInterval(15);
+    if (!mounted) return;
     setState(() {
       _tokenController.text = AppConfig.defaultToken;
       _accountIdController.text = AppConfig.defaultAccountId;
