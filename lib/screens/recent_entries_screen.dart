@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../models/project_assignment.dart';
 import '../models/project_category.dart';
 import '../models/time_entry.dart';
@@ -29,23 +28,6 @@ class _RecentEntriesScreenState extends State<RecentEntriesScreen> {
   @override
   void initState() {
     super.initState();
-    _loadGroupPref();
-  }
-
-  Future<void> _loadGroupPref() async {
-    final prefs = await SharedPreferences.getInstance();
-    if (mounted) {
-      setState(() {
-        _groupByProject = prefs.getBool('group_by_project') ?? false;
-      });
-    }
-  }
-
-  Future<void> _toggleGrouping() async {
-    final next = !_groupByProject;
-    setState(() => _groupByProject = next);
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('group_by_project', next);
   }
 
   @override
@@ -189,17 +171,18 @@ class _RecentEntriesScreenState extends State<RecentEntriesScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              Tooltip(
-                message: _groupByProject ? 'Flat list' : 'Group by project',
-                child: IconButton(
-                  icon: Icon(
-                    Icons.filter_list,
-                    color: _groupByProject
-                        ? HarvestTokens.brand
-                        : HarvestTokens.text3,
-                  ),
-                  onPressed: _toggleGrouping,
+              FilterChip(
+                avatar: Icon(
+                  _groupByProject
+                      ? Icons.folder_open
+                      : Icons.folder_outlined,
+                  size: 16,
                 ),
+                label: Text(
+                  _groupByProject ? 'Grouped by project' : 'Group by project',
+                ),
+                selected: _groupByProject,
+                onSelected: (v) => setState(() => _groupByProject = v),
               ),
             ],
           ),
