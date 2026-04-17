@@ -12,7 +12,8 @@ flutter pub get
 flutter run -d web-server --web-port=8080
 
 # Build for production
-flutter build web --release
+# MSYS_NO_PATHCONV=1 prevents Git Bash on Windows from expanding /Harvest/ to a Windows path
+MSYS_NO_PATHCONV=1 flutter build web --release --base-href /Harvest/
 
 # Lint / static analysis
 flutter analyze
