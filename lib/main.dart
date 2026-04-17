@@ -4,6 +4,7 @@ import 'providers/ado_instance_provider.dart';
 import 'providers/assignment_provider.dart';
 import 'services/ado_service.dart';
 import 'providers/time_entry_provider.dart';
+import 'providers/project_category_provider.dart';
 import 'screens/home_screen.dart';
 import 'services/harvest_service.dart';
 import 'theme/harvest_tokens.dart';
@@ -35,6 +36,9 @@ class HarvestApp extends StatelessWidget {
             provider.loadRecentEntries().then((_) => provider.startAutoRefresh());
             return provider;
           },
+        ),
+        ChangeNotifierProvider(
+          create: (_) => ProjectCategoryProvider()..load(),
         ),
       ],
       child: MaterialApp(
