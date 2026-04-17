@@ -172,11 +172,6 @@ class _RecentEntriesScreenState extends State<RecentEntriesScreen> {
     );
   }
 
-class _GroupedListRow {
-  const _GroupedListRow({required this.builder});
-
-  final WidgetBuilder builder;
-}
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<TimeEntryProvider>();
@@ -321,6 +316,12 @@ class _GroupedListRow {
       ],
     );
   }
+}
+
+class _GroupedListRow {
+  const _GroupedListRow({required this.builder});
+
+  final WidgetBuilder builder;
 }
 
 class _DayData {

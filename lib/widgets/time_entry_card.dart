@@ -154,34 +154,18 @@ class TimeEntryCard extends StatelessWidget {
                             Icon(
                               Icons.open_in_new,
                               size: 13,
-                              color: (entry.externalReference!.permalink != null &&
-                      Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: () {
-                            final p = entry.externalReference!.permalink;
-                            if (p != null) web.window.open(p, '_blank');
-                          },
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 2),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.open_in_new,
-                                    size: 13,
-                                    color: HarvestTokens.brand600),
-                                const SizedBox(width: 6),
-                                Text(
-                                  'ADO #$workItemId',
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    color: HarvestTokens.brand600,
-                                    decoration: TextDecoration.underline,
-                                  ),
-                                ),
-                              ],
+                              color: HarvestTokens.brand600,
                             ),
-                          ),
+                            const SizedBox(width: 6),
+                            Text(
+                              'ADO #$workItemId',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: HarvestTokens.brand600,
+                                decoration: TextDecoration.underline,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                   ],

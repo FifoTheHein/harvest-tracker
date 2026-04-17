@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:web/web.dart' as web;
+
 import '../models/ado_work_item.dart';
 import '../models/time_entry.dart';
 
@@ -36,9 +37,7 @@ class WorkItemPreview extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 4),
         child: Text(
           'Configure a PAT in Settings to see work item details.',
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
         ),
       );
     }
@@ -50,11 +49,7 @@ class WorkItemPreview extends StatelessWidget {
         padding: EdgeInsets.symmetric(vertical: 8),
         child: Row(
           children: [
-            SizedBox(
-              width: 14,
-              height: 14,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            ),
+            SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2)),
             SizedBox(width: 8),
             Text('Looking up work item...'),
           ],
@@ -76,9 +71,7 @@ class WorkItemPreview extends StatelessWidget {
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.surfaceContainerLow,
                 borderRadius: BorderRadius.circular(6),
-                border: Border.all(
-                  color: Theme.of(context).colorScheme.outlineVariant,
-                ),
+                border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -88,10 +81,7 @@ class WorkItemPreview extends StatelessWidget {
                     child: Container(
                       width: 10,
                       height: 10,
-                      decoration: BoxDecoration(
-                        color: stateColor,
-                        shape: BoxShape.circle,
-                      ),
+                      decoration: BoxDecoration(color: stateColor, shape: BoxShape.circle),
                     ),
                   ),
                   Expanded(
@@ -103,29 +93,17 @@ class WorkItemPreview extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Expanded(
-                              child: Text(
-                                workItem!.title,
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.w600),
-                              ),
+                              child: Text(workItem!.title, style: const TextStyle(fontWeight: FontWeight.w600)),
                             ),
                             if (workItem!.createdByName != null) ...[
                               const SizedBox(width: 8),
-                              _AvatarWidget(
-                                name: workItem!.createdByName!,
-                                imageUrl: workItem!.createdByAvatarUrl,
-                              ),
+                              _AvatarWidget(name: workItem!.createdByName!, imageUrl: workItem!.createdByAvatarUrl),
                               const SizedBox(width: 4),
                               Text(
                                 workItem!.createdByName!,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodySmall
-                                    ?.copyWith(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onSurfaceVariant,
-                                    ),
+                                style: Theme.of(
+                                  context,
+                                ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                               ),
                             ],
                           ],
@@ -135,17 +113,10 @@ class WorkItemPreview extends StatelessWidget {
                           children: [
                             Text(
                               '#$workItemId · ${workItem!.state}',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
-                                  ?.copyWith(color: stateColor),
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: stateColor),
                             ),
                             const Spacer(),
-                            Icon(
-                              Icons.open_in_new,
-                              size: 14,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
+                            Icon(Icons.open_in_new, size: 14, color: Theme.of(context).colorScheme.primary),
                           ],
                         ),
                       ],
@@ -168,9 +139,9 @@ class WorkItemPreview extends StatelessWidget {
         child: Text(
           'ADO #$workItemId',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.primary,
-                decoration: TextDecoration.underline,
-              ),
+            color: Theme.of(context).colorScheme.primary,
+            decoration: TextDecoration.underline,
+          ),
         ),
       ),
     );
@@ -181,9 +152,7 @@ class WorkItemPreview extends StatelessWidget {
     if (s.contains('done') || s.contains('closed') || s.contains('resolved')) {
       return Colors.green;
     }
-    if (s.contains('active') ||
-        s.contains('in progress') ||
-        s.contains('committed')) {
+    if (s.contains('active') || s.contains('in progress') || s.contains('committed')) {
       return Colors.blue;
     }
     if (s.contains('removed') || s.contains('cut')) {
@@ -216,7 +185,7 @@ class _AvatarWidget extends StatelessWidget {
           ? Text(
               _initials,
               style: TextStyle(
-                fontSize: 8,
+                fontSize: 10,
                 fontWeight: FontWeight.bold,
                 color: Theme.of(context).colorScheme.onPrimaryContainer,
               ),
