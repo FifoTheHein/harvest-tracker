@@ -143,23 +143,36 @@ class TimeEntryCard extends StatelessWidget {
                       )
                     else
                       GestureDetector(
-                        onTap: () {
-                          final p = entry.externalReference!.permalink;
-                          if (p != null) web.window.open(p, '_blank');
-                        },
+                        onTap: (entry.externalReference!.permalink != null &&
+                                entry.externalReference!.permalink!.isNotEmpty)
+                            ? () => web.window
+                                .open(entry.externalReference!.permalink!, '_blank')
+                            : null,
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.open_in_new,
-                                size: 13,
-                                color: HarvestTokens.brand600),
+                            Icon(
+                              Icons.open_in_new,
+                              size: 13,
+                              color: (entry.externalReference!.permalink != null &&
+                                      entry.externalReference!.permalink!.isNotEmpty)
+                                  ? HarvestTokens.brand600
+                                  : HarvestTokens.text3,
+                            ),
                             const SizedBox(width: 6),
                             Text(
                               'ADO #$workItemId',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 12,
-                                color: HarvestTokens.brand600,
-                                decoration: TextDecoration.underline,
+                                color: (entry.externalReference!.permalink != null &&
+                                        entry.externalReference!.permalink!.isNotEmpty)
+                                    ? HarvestTokens.brand600
+                                    : HarvestTokens.text3,
+                                decoration: (entry.externalReference!.permalink !=
+                                            null &&
+                                        entry.externalReference!.permalink!.isNotEmpty)
+                                    ? TextDecoration.underline
+                                    : TextDecoration.none,
                               ),
                             ),
                           ],
