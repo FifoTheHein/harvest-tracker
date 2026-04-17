@@ -234,24 +234,27 @@ class _RecentEntriesScreenState extends State<RecentEntriesScreen> {
           ),
         ),
         const Divider(height: 1),
-        _WeekSummaryStrip(
-          selectedDate: provider.selectedDate,
-          weeklyTotals: provider.weeklyTotals,
-          isLoading: provider.isLoading,
-          onDayTap: (date) {
-            final tappedDate = DateTime(date.year, date.month, date.day);
-            final selectedDate = DateTime(
-              provider.selectedDate.year,
-              provider.selectedDate.month,
-              provider.selectedDate.day,
-            );
+        LayoutBuilder(
+          builder: (ctx, constraints) => _WeekSummaryStrip(
+            selectedDate: provider.selectedDate,
+            weeklyTotals: provider.weeklyTotals,
+            isLoading: provider.isLoading,
+            emphasized: constraints.maxWidth >= HarvestTokens.kWideBreakpoint,
+            onDayTap: (date) {
+              final tappedDate = DateTime(date.year, date.month, date.day);
+              final selectedDate = DateTime(
+                provider.selectedDate.year,
+                provider.selectedDate.month,
+                provider.selectedDate.day,
+              );
 
-            if (provider.isLoading || tappedDate == selectedDate) {
-              return;
-            }
+              if (provider.isLoading || tappedDate == selectedDate) {
+                return;
+              }
 
-            context.read<TimeEntryProvider>().loadRecentEntries(date: date);
-          },
+              context.read<TimeEntryProvider>().loadRecentEntries(date: date);
+            },
+          ),
         ),
         const Divider(height: 1),
 
@@ -298,17 +301,35 @@ class _RecentEntriesScreenState extends State<RecentEntriesScreen> {
   }
 }
 
+class _DayData {
+  final DateTime date;
+  final String abbr;
+  final double hours;
+  final bool isSelected;
+  final bool isFuture;
+
+  const _DayData({
+    required this.date,
+    required this.abbr,
+    required this.hours,
+    required this.isSelected,
+    required this.isFuture,
+  });
+}
+
 class _WeekSummaryStrip extends StatelessWidget {
   final DateTime selectedDate;
   final Map<String, double> weeklyTotals;
   final bool isLoading;
   final void Function(DateTime) onDayTap;
+  final bool emphasized;
 
   const _WeekSummaryStrip({
     required this.selectedDate,
     required this.weeklyTotals,
     required this.isLoading,
     required this.onDayTap,
+    this.emphasized = false,
   });
 
   static const _dayAbbrs = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -323,61 +344,73 @@ class _WeekSummaryStrip extends StatelessWidget {
     return '${h}h ${m}m';
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+  List<_DayData> _buildDays() {
     final fmt = DateFormat('yyyy-MM-dd');
-    final dayOfWeek = selectedDate.weekday; // 1=Mon, 7=Sun
+    final dayOfWeek = selectedDate.weekday;
     final monday = selectedDate.subtract(Duration(days: dayOfWeek - 1));
     final selectedStr = fmt.format(selectedDate);
     final today = DateTime.now();
     final todayStr = fmt.format(today);
 
+    return List.generate(7, (i) {
+      final day = monday.add(Duration(days: i));
+      final dayStr = fmt.format(day);
+      return _DayData(
+        date: day,
+        abbr: _dayAbbrs[i],
+        hours: weeklyTotals[dayStr] ?? 0,
+        isSelected: dayStr == selectedStr,
+        isFuture: day.isAfter(today) && dayStr != todayStr,
+      );
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final days = _buildDays();
     double weekTotal = 0;
     for (final v in weeklyTotals.values) {
       weekTotal += v;
     }
+    if (emphasized) return _buildEmphasized(context, days, weekTotal);
+    return _buildCompact(context, days, weekTotal);
+  }
+
+  Widget _buildCompact(
+      BuildContext context, List<_DayData> days, double weekTotal) {
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         children: [
-          // Seven day columns
-          ...List.generate(7, (i) {
-            final day = monday.add(Duration(days: i));
-            final dayStr = fmt.format(day);
-            final isSelected = dayStr == selectedStr;
-            final isFuture = day.isAfter(today) && dayStr != todayStr;
-            final hours = weeklyTotals[dayStr] ?? 0;
-            final label = isLoading ? '–' : _fmt(hours);
-
-            final textColor = isSelected
+          ...days.map((d) {
+            final textColor = d.isSelected
                 ? colorScheme.primary
-                : isFuture
+                : d.isFuture
                     ? colorScheme.onSurface.withValues(alpha: 0.3)
                     : colorScheme.onSurfaceVariant;
-
             return Expanded(
               child: InkWell(
-                onTap: isFuture ? null : () => onDayTap(day),
+                onTap: d.isFuture ? null : () => onDayTap(d.date),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      _dayAbbrs[i],
+                      d.abbr,
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
                             color: textColor,
-                            fontWeight: isSelected
+                            fontWeight: d.isSelected
                                 ? FontWeight.bold
                                 : FontWeight.normal,
                           ),
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      label,
+                      isLoading ? '–' : _fmt(d.hours),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: textColor,
-                            fontWeight: isSelected
+                            fontWeight: d.isSelected
                                 ? FontWeight.bold
                                 : FontWeight.normal,
                           ),
@@ -387,7 +420,6 @@ class _WeekSummaryStrip extends StatelessWidget {
               ),
             );
           }),
-          // Week total column
           Expanded(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -411,6 +443,173 @@ class _WeekSummaryStrip extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildEmphasized(
+      BuildContext context, List<_DayData> days, double weekTotal) {
+    const dailyGoal = 8.0;
+    final weeklyGoal =
+        context.read<ProjectCategoryProvider>().weeklyGoalHours;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+      child: Container(
+        decoration: BoxDecoration(
+          color: HarvestTokens.surface2,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: HarvestTokens.border),
+        ),
+        padding: const EdgeInsets.fromLTRB(10, 14, 10, 14),
+        child: Row(
+          children: [
+            ...days.map((d) {
+              final textColor = d.isSelected
+                  ? HarvestTokens.brand600
+                  : d.isFuture
+                      ? HarvestTokens.text4
+                      : HarvestTokens.text;
+              final labelColor = d.isSelected
+                  ? HarvestTokens.brand
+                  : d.isFuture
+                      ? HarvestTokens.text4
+                      : HarvestTokens.text3;
+              final isOver = d.hours > dailyGoal;
+              final progress = (d.hours / dailyGoal).clamp(0.0, 1.0);
+
+              return Expanded(
+                child: GestureDetector(
+                  onTap: d.isFuture ? null : () => onDayTap(d.date),
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 2),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 4, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: d.isSelected
+                          ? HarvestTokens.surface
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: d.isSelected
+                            ? HarvestTokens.brandTint2
+                            : Colors.transparent,
+                      ),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          d.abbr.toUpperCase(),
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 0.6,
+                            color: labelColor,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${d.date.day}',
+                          style: TextStyle(
+                            fontFamily: 'monospace',
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: -0.4,
+                            color: textColor,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          d.isFuture || isLoading ? '–' : _fmt(d.hours),
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: d.isSelected
+                                ? FontWeight.w600
+                                : FontWeight.w500,
+                            color: textColor,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(2),
+                          child: SizedBox(
+                            height: 3,
+                            child: LinearProgressIndicator(
+                              value: d.isFuture ? 0 : progress,
+                              backgroundColor: HarvestTokens.surface3,
+                              color: isOver
+                                  ? HarvestTokens.warn
+                                  : HarvestTokens.brand,
+                              minHeight: 3,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }),
+            Container(
+              width: 1,
+              height: 60,
+              color: HarvestTokens.border,
+              margin: const EdgeInsets.symmetric(horizontal: 4),
+            ),
+            SizedBox(
+              width: 56,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'WEEK',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.6,
+                      color: HarvestTokens.text2,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    isLoading ? '–' : _fmt(weekTotal),
+                    style: const TextStyle(
+                      fontFamily: 'monospace',
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.4,
+                      color: HarvestTokens.text,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'of ${weeklyGoal % 1 == 0 ? weeklyGoal.toInt() : weeklyGoal}h',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: HarvestTokens.text3,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(2),
+                    child: SizedBox(
+                      height: 3,
+                      child: LinearProgressIndicator(
+                        value: weeklyGoal > 0
+                            ? (weekTotal / weeklyGoal).clamp(0.0, 1.0)
+                            : 0,
+                        backgroundColor: HarvestTokens.surface3,
+                        color: HarvestTokens.brand,
+                        minHeight: 3,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
