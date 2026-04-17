@@ -20,8 +20,16 @@ class TimeEntryProvider extends ChangeNotifier {
   int _loadRecentEntriesRequestId = 0;
 
   Timer? _refreshTimer;
-  int refreshIntervalMinutes = 15;
+  static const int _defaultRefreshIntervalMinutes = 15;
+  int refreshIntervalMinutes = _defaultRefreshIntervalMinutes;
   static const _kRefreshKey = 'auto_refresh_interval_minutes';
+
+  int _sanitizeRefreshInterval(int? minutes) {
+    if (minutes == null || minutes <= 0) {
+      return _defaultRefreshIntervalMinutes;
+    }
+    return minutes;
+  }
 
   DateTime selectedDate = DateTime.now();
 
@@ -88,21 +96,25 @@ class TimeEntryProvider extends ChangeNotifier {
   /// Call once after the initial [loadRecentEntries] in main.dart.
   Future<void> startAutoRefresh() async {
     final prefs = await SharedPreferences.getInstance();
-    refreshIntervalMinutes = prefs.getInt(_kRefreshKey) ?? 15;
+    refreshIntervalMinutes =
+        _sanitizeRefreshInterval(prefs.getInt(_kRefreshKey));
     _restartTimer();
   }
 
   /// Updates the interval, persists it, and restarts the timer immediately.
   Future<void> setRefreshInterval(int minutes) async {
-    refreshIntervalMinutes = minutes;
+    final sanitizedMinutes = _sanitizeRefreshInterval(minutes);
+    refreshIntervalMinutes = sanitizedMinutes;
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(_kRefreshKey, minutes);
+    await prefs.setInt(_kRefreshKey, sanitizedMinutes);
     _restartTimer();
     notifyListeners();
   }
 
   void _restartTimer() {
     _refreshTimer?.cancel();
+    refreshIntervalMinutes =
+        _sanitizeRefreshInterval(refreshIntervalMinutes);
     _refreshTimer = Timer.periodic(
       Duration(minutes: refreshIntervalMinutes),
       (_) => loadRecentEntries(silent: true),
