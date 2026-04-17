@@ -44,9 +44,9 @@ class WeeklyProgressRing extends StatelessWidget {
                 Text(
                   _fmtDuration(hours),
                   style: TextStyle(
-                    fontFamily: 'ui-monospace',
+                    fontFamily: 'Courier New',
                     fontFeatures: const [FontFeature.tabularFigures()],
-                    fontSize: size >= 96 ? 22 : 18,
+                    fontSize: _labelFontSize(_fmtDuration(hours)),
                     fontWeight: FontWeight.w700,
                     letterSpacing: -0.6,
                     color: isOver
@@ -72,6 +72,13 @@ class WeeklyProgressRing extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  double _labelFontSize(String label) {
+    // Inner diameter ≈ size - stroke*2. Scale down for longer labels.
+    if (label.length <= 2) return size >= 96 ? 22 : 18;
+    if (label.length <= 4) return size >= 96 ? 20 : 16;
+    return size >= 96 ? 16 : 13;
   }
 
   String _fmtDuration(double h) {
