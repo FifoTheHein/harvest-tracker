@@ -21,16 +21,19 @@ class HarvestProject {
   final String name;
   final String code;
   final List<HarvestTask> tasks;
+  final String? clientName;
 
   const HarvestProject({
     required this.id,
     required this.name,
     required this.code,
     required this.tasks,
+    this.clientName,
   });
 
   factory HarvestProject.fromAssignment(Map<String, dynamic> assignment) {
     final project = assignment['project'] as Map<String, dynamic>;
+    final client = assignment['client'] as Map<String, dynamic>?;
     final taskAssignments =
         (assignment['task_assignments'] as List<dynamic>? ?? []);
     return HarvestProject(
@@ -41,6 +44,7 @@ class HarvestProject {
           .map((ta) =>
               HarvestTask.fromJson(ta['task'] as Map<String, dynamic>))
           .toList(),
+      clientName: client?['name'] as String?,
     );
   }
 
