@@ -52,6 +52,7 @@ class DurationPill extends StatelessWidget {
 
     if (!running) return pill;
 
+    // Clip.none lets the badge render outside the pill's bounding box.
     return Stack(
       clipBehavior: Clip.none,
       children: [
