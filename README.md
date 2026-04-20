@@ -35,7 +35,7 @@ A personal Flutter web app for logging time entries to [Harvest](https://www.get
 
 ### Visual Design (2.0)
 - **Design token system** — `HarvestTokens` defines brand orange, warm-paper surface palette, border colours, and ADO state colours; all components reference tokens, not raw hex values
-- **Duration pill** — 44 px circular pill in the leading position of every entry card; tabular-mono hours label; brand tint background
+- **Duration pill** — 44 px circular pill in the leading position of every entry card; tabular-mono hours label; brand tint background; turns solid orange with a small play-arrow badge (bottom-right) when the timer is actively running
 - **Project colour chips** — each project is auto-assigned one of 12 colours (persisted); shown as a short code badge on cards and group headers
 - **Responsive shell** — wide screens (≥ 720 dp) use a `NavigationRail` sidebar; narrow screens use a `NavigationBar`; content is max-width constrained at 760 dp
 
