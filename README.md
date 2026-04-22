@@ -1,4 +1,5 @@
-# Harvest Tracker
+# Grain
+### A better Harvest
 
 A personal Flutter web app for logging time entries to [Harvest](https://www.getharvest.com/) directly from the browser, with first-class Azure DevOps integration.
 

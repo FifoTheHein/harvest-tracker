@@ -42,7 +42,7 @@ class HarvestApp extends StatelessWidget {
         ),
       ],
       child: MaterialApp(
-        title: 'Harvest Tracker 2.0',
+        title: 'Grain',
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(
             seedColor: HarvestTokens.brand,

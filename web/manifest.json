@@ -1,11 +1,11 @@
 {
-    "name": "harvest",
-    "short_name": "harvest",
+    "name": "Grain",
+    "short_name": "Grain",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "A better Harvest — time tracking built on harvestapp.com",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

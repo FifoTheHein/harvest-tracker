@@ -82,7 +82,18 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Column(
                     children: [
                       AppBar(
-                        title: const Text('Harvest Tracker 2.0'),
+                        title: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('Grain',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.w700, fontSize: 18)),
+                            Text('A better Harvest',
+                                style: TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.white.withValues(alpha: 0.8))),
+                          ],
+                        ),
                         backgroundColor: HarvestTokens.brand,
                         foregroundColor: Colors.white,
                         elevation: 2,
@@ -106,7 +117,18 @@ class _HomeScreenState extends State<HomeScreen> {
 
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Harvest Tracker 2.0'),
+            title: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('Grain',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.w700, fontSize: 18)),
+                            Text('A better Harvest',
+                                style: TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.white.withValues(alpha: 0.8))),
+                          ],
+                        ),
             backgroundColor: HarvestTokens.brand,
             foregroundColor: Colors.white,
             elevation: 2,
