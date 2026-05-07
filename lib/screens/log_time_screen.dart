@@ -479,13 +479,19 @@ class _LogTimeScreenState extends State<LogTimeScreen> {
             const Divider(),
             CheckboxListTile(
               value: _hasAdoRef,
-              onChanged: (v) => setState(() {
-                _hasAdoRef = v ?? false;
-                if (!_hasAdoRef) {
-                  _workItemIdController.clear();
-                  _selectedAdoInstance = null;
-                }
-              }),
+              onChanged: (v) {
+                final adoInstances =
+                    context.read<AdoInstanceProvider>().instances;
+                setState(() {
+                  _hasAdoRef = v ?? false;
+                  if (!_hasAdoRef) {
+                    _workItemIdController.clear();
+                    _selectedAdoInstance = null;
+                  } else if (adoInstances.length == 1) {
+                    _selectedAdoInstance = adoInstances.first;
+                  }
+                });
+              },
               title: const Text(
                 'Link Azure DevOps Work Item',
                 style: TextStyle(fontWeight: FontWeight.w600),
