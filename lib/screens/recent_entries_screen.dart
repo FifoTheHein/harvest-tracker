@@ -144,10 +144,7 @@ class _RecentEntriesScreenState extends State<RecentEntriesScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<TimeEntryProvider>();
-    final today = DateTime.now();
-    final isToday = provider.selectedDate.year == today.year &&
-        provider.selectedDate.month == today.month &&
-        provider.selectedDate.day == today.day;
+    final isToday = provider.isSelectedDateToday;
 
     final sortedEntries = [...provider.entries]
       ..sort((a, b) => (b.createdAt ?? '').compareTo(a.createdAt ?? ''));
