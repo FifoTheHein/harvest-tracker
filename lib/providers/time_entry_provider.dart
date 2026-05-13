@@ -18,6 +18,15 @@ class TimeEntryProvider extends ChangeNotifier {
   String? error;
   String? successMessage;
   int _loadRecentEntriesRequestId = 0;
+  bool _showNewDayBanner = false;
+  bool get showNewDayBanner => _showNewDayBanner;
+
+  bool get isSelectedDateToday {
+    final now = DateTime.now();
+    return selectedDate.year == now.year &&
+        selectedDate.month == now.month &&
+        selectedDate.day == now.day;
+  }
 
   Timer? _refreshTimer;
   static const int _defaultRefreshIntervalMinutes = 15;
@@ -59,7 +68,7 @@ class TimeEntryProvider extends ChangeNotifier {
   ///
   /// [operation] must return a user-facing success message, which is assigned
   /// to [successMessage] when the mutation succeeds.
-  Future<bool> _runMutation(Future<String> operation()) async {
+  Future<bool> _runMutation(Future<String> Function() operation) async {
     isSubmitting = true;
     error = null;
     successMessage = null;
@@ -95,6 +104,7 @@ class TimeEntryProvider extends ChangeNotifier {
       error = null;
       entries = [];
       weeklyTotals = {};
+      _showNewDayBanner = false;
       notifyListeners();
     }
 
@@ -133,6 +143,7 @@ class TimeEntryProvider extends ChangeNotifier {
     } finally {
       if (requestId == _loadRecentEntriesRequestId) {
         if (!silent) isLoading = false;
+        if (silent && !isSelectedDateToday) _showNewDayBanner = true;
         notifyListeners();
       }
     }
